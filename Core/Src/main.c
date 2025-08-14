@@ -45,6 +45,15 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+CRYP_HandleTypeDef hcryp;
+__ALIGN_BEGIN static const uint32_t pKeyAES[4] __ALIGN_END = {
+                            0x00000000,0x00000000,0x00000000,0x00000000};
+
+HASH_HandleTypeDef hhash;
+
+PKA_HandleTypeDef hpka;
+
+RNG_HandleTypeDef hrng;
 
 TIM_HandleTypeDef htim6;
 
@@ -60,6 +69,10 @@ static void MX_GPIO_Init(void);
 static void MX_ICACHE_Init(void);
 static void MX_USB_PCD_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_AES_Init(void);
+static void MX_HASH_Init(void);
+static void MX_RNG_Init(void);
+static void MX_PKA_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -133,8 +146,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ICACHE_Init();
-  // MX_USB_PCD_Init();
+  MX_USB_PCD_Init();
   MX_TIM6_Init();
+  MX_AES_Init();
+  MX_HASH_Init();
+  MX_RNG_Init();
+  MX_PKA_Init();
   /* USER CODE BEGIN 2 */
   uint8_t in_nfc_mode = check_is_nfc_en(); // boot in NFC mode by default
   nfc_init();
@@ -210,7 +227,8 @@ void SystemClock_Config(void)
 
   /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSIS;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_MSIS;
+  RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
   RCC_OscInitStruct.MSISState = RCC_MSI_ON;
   RCC_OscInitStruct.MSISSource = RCC_MSI_RC0;
   RCC_OscInitStruct.MSISDiv = RCC_MSI_DIV1;
@@ -234,6 +252,68 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief AES Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_AES_Init(void)
+{
+
+  /* USER CODE BEGIN AES_Init 0 */
+
+  /* USER CODE END AES_Init 0 */
+
+  /* USER CODE BEGIN AES_Init 1 */
+
+  /* USER CODE END AES_Init 1 */
+  hcryp.Instance = AES;
+  hcryp.Init.DataType = CRYP_NO_SWAP;
+  hcryp.Init.KeySize = CRYP_KEYSIZE_128B;
+  hcryp.Init.pKey = (uint32_t *)pKeyAES;
+  hcryp.Init.Algorithm = CRYP_AES_ECB;
+  hcryp.Init.DataWidthUnit = CRYP_DATAWIDTHUNIT_WORD;
+  hcryp.Init.HeaderWidthUnit = CRYP_HEADERWIDTHUNIT_WORD;
+  hcryp.Init.KeyIVConfigSkip = CRYP_KEYIVCONFIG_ALWAYS;
+  hcryp.Init.KeyMode = CRYP_KEYMODE_NORMAL;
+  if (HAL_CRYP_Init(&hcryp) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN AES_Init 2 */
+
+  /* USER CODE END AES_Init 2 */
+
+}
+
+/**
+  * @brief HASH Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_HASH_Init(void)
+{
+
+  /* USER CODE BEGIN HASH_Init 0 */
+
+  /* USER CODE END HASH_Init 0 */
+
+  /* USER CODE BEGIN HASH_Init 1 */
+
+  /* USER CODE END HASH_Init 1 */
+  hhash.Instance = HASH;
+  hhash.Init.DataType = HASH_NO_SWAP;
+  hhash.Init.Algorithm = HASH_ALGOSELECTION_SHA1;
+  if (HAL_HASH_Init(&hhash) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN HASH_Init 2 */
+
+  /* USER CODE END HASH_Init 2 */
+
 }
 
 /**
@@ -265,6 +345,59 @@ static void MX_ICACHE_Init(void)
   /* USER CODE BEGIN ICACHE_Init 2 */
 
   /* USER CODE END ICACHE_Init 2 */
+
+}
+
+/**
+  * @brief PKA Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_PKA_Init(void)
+{
+
+  /* USER CODE BEGIN PKA_Init 0 */
+
+  /* USER CODE END PKA_Init 0 */
+
+  /* USER CODE BEGIN PKA_Init 1 */
+
+  /* USER CODE END PKA_Init 1 */
+  hpka.Instance = PKA;
+  if (HAL_PKA_Init(&hpka) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN PKA_Init 2 */
+
+  /* USER CODE END PKA_Init 2 */
+
+}
+
+/**
+  * @brief RNG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RNG_Init(void)
+{
+
+  /* USER CODE BEGIN RNG_Init 0 */
+
+  /* USER CODE END RNG_Init 0 */
+
+  /* USER CODE BEGIN RNG_Init 1 */
+
+  /* USER CODE END RNG_Init 1 */
+  hrng.Instance = RNG;
+  hrng.Init.ClockErrorDetection = RNG_CED_ENABLE;
+  if (HAL_RNG_Init(&hrng) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RNG_Init 2 */
+
+  /* USER CODE END RNG_Init 2 */
 
 }
 
@@ -321,21 +454,21 @@ static void MX_USB_PCD_Init(void)
   /* USER CODE BEGIN USB_Init 1 */
 
   /* USER CODE END USB_Init 1 */
-  // hpcd_USB_DRD_FS.Instance = USB_DRD_FS;
-  // hpcd_USB_DRD_FS.Init.dev_endpoints = 8;
-  // hpcd_USB_DRD_FS.Init.speed = USBD_FS_SPEED;
-  // hpcd_USB_DRD_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
-  // hpcd_USB_DRD_FS.Init.Sof_enable = DISABLE;
-  // hpcd_USB_DRD_FS.Init.low_power_enable = DISABLE;
-  // hpcd_USB_DRD_FS.Init.lpm_enable = DISABLE;
-  // hpcd_USB_DRD_FS.Init.battery_charging_enable = DISABLE;
-  // hpcd_USB_DRD_FS.Init.vbus_sensing_enable = DISABLE;
-  // hpcd_USB_DRD_FS.Init.bulk_doublebuffer_enable = DISABLE;
-  // hpcd_USB_DRD_FS.Init.iso_singlebuffer_enable = DISABLE;
-  // if (HAL_PCD_Init(&hpcd_USB_DRD_FS) != HAL_OK)
-  // {
-  //   Error_Handler();
-  // }
+  hpcd_USB_DRD_FS.Instance = USB_DRD_FS;
+  hpcd_USB_DRD_FS.Init.dev_endpoints = 8;
+  hpcd_USB_DRD_FS.Init.speed = USBD_FS_SPEED;
+  hpcd_USB_DRD_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
+  hpcd_USB_DRD_FS.Init.Sof_enable = DISABLE;
+  hpcd_USB_DRD_FS.Init.low_power_enable = DISABLE;
+  hpcd_USB_DRD_FS.Init.lpm_enable = DISABLE;
+  hpcd_USB_DRD_FS.Init.battery_charging_enable = DISABLE;
+  hpcd_USB_DRD_FS.Init.vbus_sensing_enable = DISABLE;
+  hpcd_USB_DRD_FS.Init.bulk_doublebuffer_enable = DISABLE;
+  hpcd_USB_DRD_FS.Init.iso_singlebuffer_enable = DISABLE;
+  if (HAL_PCD_Init(&hpcd_USB_DRD_FS) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN USB_Init 2 */
   hpcd_USB_DRD_FS.Instance = USB_DRD_FS;
   HAL_PCD_MspInit(&hpcd_USB_DRD_FS);

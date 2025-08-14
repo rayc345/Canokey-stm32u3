@@ -44,7 +44,7 @@
 #define MPI_SUPPORT ENABLED
 
 // Assembly optimizations for time-critical routines
-#define MPI_ASM_SUPPORT DISABLED
+#define MPI_ASM_SUPPORT ENABLED
 
 // Base64 encoding support
 #define BASE64_SUPPORT DISABLED
