@@ -10,7 +10,7 @@ const uint32_t MIN_LONG_TOUCH_TIME = 500;
 const uint32_t MIN_TOUCH_TIME = 20;
 
 extern TIM_HandleTypeDef htim6;
-extern SPI_HandleTypeDef hspi1;
+// extern SPI_HandleTypeDef hspi1;
 
 static volatile uint32_t blinking_until;
 static void (*tim_callback)(void);

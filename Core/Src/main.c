@@ -21,7 +21,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "lfs_init.h"
+#include <apdu.h>
+#include <applets.h>
+#include <ccid.h>
+#include <device.h>
+#include <nfc.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,6 +46,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 
+TIM_HandleTypeDef htim6;
+
 PCD_HandleTypeDef hpcd_USB_DRD_FS;
 
 /* USER CODE BEGIN PV */
@@ -52,6 +59,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ICACHE_Init(void);
 static void MX_USB_PCD_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -59,6 +67,40 @@ static void MX_USB_PCD_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+uint8_t detect_usb(void) {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  GPIO_InitStruct.Pin = GPIO_PIN_12; // USB_DP
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12) == 0) return 1;
+
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  return 0;
+}
+
+static void config_usb_mode(void) {
+  DBG_MSG("Init USB\n");
+  // SystemClock_CustomConfig(false, true);
+  // // reconfig peripheral clock dividers
+  // LL_SPI_SetBaudRatePrescaler(hspi1.Instance, LL_SPI_BAUDRATEPRESCALER_DIV8);
+  // MX_USART2_UART_Init();
+  // /* Enable USB power on Pwrctrl CR2 register. */
+  // HAL_PWREx_EnableVddUSB();
+  // /* Peripheral clock enable */
+  // __HAL_RCC_USB_CLK_ENABLE();
+  // /* Peripheral interrupt init */
+  // HAL_NVIC_SetPriority(USB_IRQn, 1, 0);
+  MX_USB_PCD_Init();
+  usb_device_init();
+}
+
+int check_is_nfc_en(void) {
+  return 1;
+}
 /* USER CODE END 0 */
 
 /**
@@ -91,9 +133,25 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ICACHE_Init();
-  MX_USB_PCD_Init();
+  // MX_USB_PCD_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
+  uint8_t in_nfc_mode = check_is_nfc_en(); // boot in NFC mode by default
+  nfc_init();
+  set_nfc_state(in_nfc_mode);
 
+  DBG_MSG("Init FS\n");
+  littlefs_init();
+
+  DBG_MSG("Init applets\n");
+  applets_install();
+  init_apdu_buffer();
+
+  if (!in_nfc_mode) {
+    while (!detect_usb());
+    config_usb_mode();
+  }
+  DBG_MSG("Main Loop\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,6 +161,18 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    /* USER CODE END WHILE */
+    /* USER CODE BEGIN 3 */
+    if (in_nfc_mode) {
+      nfc_loop();
+      if (detect_usb()) { // USB plug-in
+        config_usb_mode();
+        in_nfc_mode = 0;
+        set_nfc_state(in_nfc_mode); // comment out this line to emulate NFC mode with USB connection
+      }
+    } else {
+      device_loop();
+    }
   }
   /* USER CODE END 3 */
 }
@@ -199,6 +269,44 @@ static void MX_ICACHE_Init(void)
 }
 
 /**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 0;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 65535;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
   * @brief USB Initialization Function
   * @param None
   * @retval None
@@ -213,23 +321,24 @@ static void MX_USB_PCD_Init(void)
   /* USER CODE BEGIN USB_Init 1 */
 
   /* USER CODE END USB_Init 1 */
-  hpcd_USB_DRD_FS.Instance = USB_DRD_FS;
-  hpcd_USB_DRD_FS.Init.dev_endpoints = 8;
-  hpcd_USB_DRD_FS.Init.speed = USBD_FS_SPEED;
-  hpcd_USB_DRD_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
-  hpcd_USB_DRD_FS.Init.Sof_enable = DISABLE;
-  hpcd_USB_DRD_FS.Init.low_power_enable = DISABLE;
-  hpcd_USB_DRD_FS.Init.lpm_enable = DISABLE;
-  hpcd_USB_DRD_FS.Init.battery_charging_enable = DISABLE;
-  hpcd_USB_DRD_FS.Init.vbus_sensing_enable = DISABLE;
-  hpcd_USB_DRD_FS.Init.bulk_doublebuffer_enable = DISABLE;
-  hpcd_USB_DRD_FS.Init.iso_singlebuffer_enable = DISABLE;
-  if (HAL_PCD_Init(&hpcd_USB_DRD_FS) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  // hpcd_USB_DRD_FS.Instance = USB_DRD_FS;
+  // hpcd_USB_DRD_FS.Init.dev_endpoints = 8;
+  // hpcd_USB_DRD_FS.Init.speed = USBD_FS_SPEED;
+  // hpcd_USB_DRD_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
+  // hpcd_USB_DRD_FS.Init.Sof_enable = DISABLE;
+  // hpcd_USB_DRD_FS.Init.low_power_enable = DISABLE;
+  // hpcd_USB_DRD_FS.Init.lpm_enable = DISABLE;
+  // hpcd_USB_DRD_FS.Init.battery_charging_enable = DISABLE;
+  // hpcd_USB_DRD_FS.Init.vbus_sensing_enable = DISABLE;
+  // hpcd_USB_DRD_FS.Init.bulk_doublebuffer_enable = DISABLE;
+  // hpcd_USB_DRD_FS.Init.iso_singlebuffer_enable = DISABLE;
+  // if (HAL_PCD_Init(&hpcd_USB_DRD_FS) != HAL_OK)
+  // {
+  //   Error_Handler();
+  // }
   /* USER CODE BEGIN USB_Init 2 */
-
+  hpcd_USB_DRD_FS.Instance = USB_DRD_FS;
+  HAL_PCD_MspInit(&hpcd_USB_DRD_FS);
   /* USER CODE END USB_Init 2 */
 
 }

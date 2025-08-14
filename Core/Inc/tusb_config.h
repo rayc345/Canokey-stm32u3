@@ -41,7 +41,7 @@
 
 // RHPort max operational speed can defined by board.mk
 #ifndef BOARD_TUD_MAX_SPEED
-#define BOARD_TUD_MAX_SPEED   OPT_MODE_DEFAULT_SPEED
+#define BOARD_TUD_MAX_SPEED   OPT_MODE_FULL_SPEED
 #endif
 
 //--------------------------------------------------------------------
@@ -86,26 +86,31 @@
 // DEVICE CONFIGURATION
 //--------------------------------------------------------------------
 
+// #define CFG_TUSB_RHPORT0_MODE     (OPT_MODE_DEVICE | CFG_TUD_MAX_SPEED)
+
 #ifndef CFG_TUD_ENDPOINT0_SIZE
 #define CFG_TUD_ENDPOINT0_SIZE    64
 #endif
 
 //------------- CLASS -------------//
-#define CFG_TUD_CDC               1
+#define CFG_TUD_CDC               0
 #define CFG_TUD_MSC               0
-#define CFG_TUD_HID               0
+#define CFG_TUD_HID               2
 #define CFG_TUD_MIDI              0
+#define CFG_TUD_CCID              1
 #define CFG_TUD_VENDOR            1
 
-// CDC FIFO size of TX and RX
-#define CFG_TUD_CDC_RX_BUFSIZE    (TUD_OPT_HIGH_SPEED ? 512 : 64)
-#define CFG_TUD_CDC_TX_BUFSIZE    (TUD_OPT_HIGH_SPEED ? 512 : 64)
+// HID buffer size Should be sufficient to hold ID (if any) + Data
+#define CFG_TUD_CTAPHID_EP_BUFSIZE  64
+#define CFG_TUD_KBDHID_EP_BUFSIZE   8
 
 // Vendor FIFO size of TX and RX
 // If zero: vendor endpoints will not be buffered
-#define CFG_TUD_VENDOR_RX_BUFSIZE (TUD_OPT_HIGH_SPEED ? 512 : 64)
-#define CFG_TUD_VENDOR_TX_BUFSIZE (TUD_OPT_HIGH_SPEED ? 512 : 64)
+#define CFG_TUD_VENDOR_RX_BUFSIZE 0
+#define CFG_TUD_VENDOR_TX_BUFSIZE 0
 
+#define CFG_TUD_CCID_EPSIZE 64
+#define CFG_TUD_CCID_RX_BUFSIZE 64
 
 #ifdef __cplusplus
  }

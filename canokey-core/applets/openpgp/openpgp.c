@@ -1240,9 +1240,6 @@ static int openpgp_get_challenge(const CAPDU *capdu, RAPDU *rapdu) {
 }
 
 int openpgp_process_apdu(const CAPDU *capdu, RAPDU *rapdu) {
-  DBG_MSG("PGP CLA %02X INS %02X P1 %02X P2 %02X LE %d LC %d | ", CLA, INS, P1, P2, LE, LC);
-  PRINT_HEX(DATA, LC);
-
   LL = 0;
   SW = SW_NO_ERROR;
   if (CLA != 0x00) EXCEPT(SW_CLA_NOT_SUPPORTED);

@@ -187,7 +187,12 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+  static uint32_t cnt = 0;
+  cnt++;
+  if (cnt % 10 == 0) {
+    void device_periodic_task(void);
+    device_periodic_task();
+  }
   /* USER CODE END SysTick_IRQn 1 */
 }
 

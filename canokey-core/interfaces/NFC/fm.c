@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "device.h"
 #include <stdint.h>
-#include "hpm_clock_drv.h"
 
 #define I2C_WRITE_WITH_CHECK(data)                                     \
   do {                                                                 \
     if (i2c_write_byte(data) == FM_STATUS_NACK) return FM_STATUS_NACK; \
   } while (0)
 
-#if NFC_CHIP == NFC_CHIP_FM11NC
 static void device_delay_us(int us) {
-  clock_cpu_delay_us(us);
+  for (int i = 0; i < us * 10; ++i)
+    asm volatile("nop");
 }
-#endif
 
 fm_status_t fm_read_regs(uint16_t reg, uint8_t *buf, uint8_t len) {
   (void)reg;

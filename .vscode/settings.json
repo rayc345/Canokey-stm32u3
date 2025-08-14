@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "openpgp.h": "c",
+        "main.h": "c",
+        "stm32u3xx_ll_tim.h": "c"
+    }
+}
