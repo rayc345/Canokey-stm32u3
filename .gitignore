@@ -4,3 +4,5 @@ armbuild/
 build-arm/
 cmake-build-*/
 Inc/git-rev.h
+Output/*
+Canokey-stm32u3.emSession

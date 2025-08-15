@@ -303,62 +303,64 @@ const tusb_desc_webusb_url_t desc_url = {
 //--------------------------------------------------------------------+
 // String Descriptors
 //--------------------------------------------------------------------+
-// array of pointer to standard string descriptors
-char const* string_desc_arr_std[] = {
-  (const char[]) { USBD_LANGID_STRING },  // 0: supported language
-  USBD_MANUFACTURER_STRING,               // 1: Manufacturer
-  USBD_PRODUCT_STRING,                    // 2: Product
-  NULL,                                   // 3: Serials Number Placeholder
+
+// String Descriptor Index
+enum {
+  STRID_LANGID = 0,
+  STRID_MANUFACTURER,
+  STRID_PRODUCT,
+  STRID_SERIAL,
 };
 
-// array of pointer to custom string descriptors
-char const* string_desc_arr_custom[] = {
-  USBD_CTAPHID_INTERFACE_STRING,
-  USBD_CCID_INTERFACE_STRING,
-  USBD_WEBUSB_INTERFACE_STRING,
-  USBD_KBDHID_INTERFACE_STRING
+// array of pointer to string descriptors
+char const *string_desc_arr[] =
+{
+  (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
+  USBD_MANUFACTURER_STRING,      // 1: Manufacturer
+  USBD_PRODUCT_STRING,           // 2: Product
+  "12345678",                    // 3: Serials will use unique ID if possible
+  USBD_CTAPHID_INTERFACE_STRING, // 4: FIDO/U2F Interface string
+  USBD_CCID_INTERFACE_STRING,    // 5: CCID Interface string
+  USBD_WEBUSB_INTERFACE_STRING,  // 6: WebUSB Interface string
+  USBD_KBDHID_INTERFACE_STRING   // 7: keyboard HID Interface string
 };
- 
-static uint16_t _desc_str[USBD_MAX_STR_DESC_SIZE];
+
+static uint16_t _desc_str[USBD_MAX_STR_DESC_SIZE + 1];
 
 // Invoked when received GET STRING DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
-uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
-  uint8_t chr_count;
-  const char* _str;  // This will get copied to _desc_str
+uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
+  (void) langid;
+  size_t chr_count;
 
-  if (index < USBD_IDX_STD_STR_MAX) {   // standard string, excluding sn
-    _str = string_desc_arr_std[index];
-  } else if (index >= USBD_IDX_CUSTOM_STR_BASE && index < USBD_IDX_CUSTOM_STR_MAX) {
-    _str = string_desc_arr_custom[index - USBD_IDX_CUSTOM_STR_BASE];
-  } else {
-    return NULL;
+  switch ( index ) {
+    case STRID_LANGID:
+      memcpy(&_desc_str[1], string_desc_arr[0], 2);
+      chr_count = 1;
+      break;
+
+    default:
+      // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.
+      // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
+
+      if ( !(index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0])) ) return NULL;
+
+      const char *str = string_desc_arr[index];
+
+      // Cap at max char
+      chr_count = strlen(str);
+      size_t const max_count = sizeof(_desc_str) / sizeof(_desc_str[0]) - 1; // -1 for string type
+      if ( chr_count > max_count ) chr_count = max_count;
+
+      // Convert ASCII string into UTF-16
+      for ( size_t i = 0; i < chr_count; i++ ) {
+        _desc_str[1 + i] = str[i];
+      }
+      break;
   }
-
-  if (index == USBD_IDX_SERIAL_STR) {   // serial number
-    uint8_t sn[4];
-    char sn_str[9];
-    fill_sn(sn);
-    sprintf(sn_str, "%02X%02X%02X%02X", sn[0], sn[1], sn[2], sn[3]);
-    _str = (const char*) sn_str;
-  }
-
-  // Cap at max chararcter count
-  chr_count = strlen(_str);
-  if (chr_count > USBD_MAX_STR_DESC_SIZE - 1) 
-    chr_count = USBD_MAX_STR_DESC_SIZE - 1;
-
-  // Convert ASCII string into UTF-16
-  for(uint8_t i = 0; i < chr_count; i++)
-    _desc_str[i+1] = _str[i];
 
   // first byte is length (including header), second byte is string type
-  _desc_str[0] = (TUSB_DESC_STRING << 8 ) | (2 * chr_count + 2);
-
-  DBG_MSG("String Descriptor [%d], chr: %d\n", index, chr_count);
-  // for (uint8_t i = 0; i < chr_count; i++)
-  //   DBG_MSG("%04X ", _desc_str[i]);
-  // DBG_MSG("\r\n");
+  _desc_str[0] = (uint16_t) ((TUSB_DESC_STRING << 8) | (2 * chr_count + 2));
 
   return _desc_str;
 }

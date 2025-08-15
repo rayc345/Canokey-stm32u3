@@ -128,7 +128,7 @@ static void KBDHID_TypeKeySeq(void) {
   }
 }
 
-void KBDHID_Eject() {
+void KBDHID_Eject(void) {
   key_sequence[0] = EJECT_KEY;
   key_sequence[1] = 0;
   key_seq_position = 0;

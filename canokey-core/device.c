@@ -18,14 +18,14 @@ static volatile wait_status_t wait_status = WAIT_NONE; // WAIT_NONE is not 0, he
 uint8_t device_is_blinking(void) { return blink_timeout != 0; }
 
 // Called when usb device is connected and initialized
-void device_mounted() {
+void device_mounted(void) {
   ccid_init();
   ctap_hid_init(CTAPHID_SendReport);
   webusb_init();
   kbd_hid_init();
 }
 
-void device_loop() {
+void device_loop(void) {
   tud_task(); // TinyUSB stack task
 
   ccid_loop();
@@ -41,7 +41,7 @@ bool device_allow_kbd_touch(void) {
       now - TOUCH_EXPIRE_TIME > last_blink &&
       get_touch_result() != TOUCH_NO
   ) {
-    DBG_MSG("now=%lu last_blink=%lu\n", now, last_blink);
+    DBG_MSG("now=%u last_blink=%u\n", now, last_blink);
     return true;
   }
   return false;
@@ -182,8 +182,8 @@ void stop_blinking(void) {
     led_on();
     led_status = ON;
   } else {
-    led_off();
-    led_status = OFF;
+   led_off();
+   led_status = OFF;
   }
 }
 

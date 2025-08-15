@@ -22,7 +22,7 @@ uint32_t device_get_tick(void) { return HAL_GetTick(); }
 void device_set_timeout(void (*callback)(void), uint16_t timeout)
 {
   const uint32_t prescaler = 4000;
-  uint32_t counting_freq = 48000000;
+  uint32_t counting_freq = 96000000;
   // DBG_MSG("counting_freq=%u\n", counting_freq);
   if (timeout == 0)
   {
@@ -33,7 +33,7 @@ void device_set_timeout(void (*callback)(void), uint16_t timeout)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = prescaler - 1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = counting_freq / 1000 * timeout - 1;
+  htim6.Init.Period = counting_freq / 1000 / prescaler * timeout - 1;
   if (htim6.Init.Period > 65535)
   {
     ERR_MSG("TIM6 period %u overflow!\n", htim6.Init.Period);

@@ -2954,7 +2954,7 @@ static HAL_StatusTypeDef HASH_WriteData_IT(HASH_HandleTypeDef *hhash)
       }
     }
   }
-  else if ((hhash->State == HAL_HASH_STATE_SUSPENDED))
+  else if (hhash->State == HAL_HASH_STATE_SUSPENDED)
   {
     return HAL_OK;
   }

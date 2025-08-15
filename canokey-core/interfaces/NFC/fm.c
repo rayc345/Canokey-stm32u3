@@ -9,7 +9,7 @@
 
 static void device_delay_us(int us) {
   for (int i = 0; i < us * 10; ++i)
-    asm volatile("nop");
+    __asm volatile("nop");
 }
 
 fm_status_t fm_read_regs(uint16_t reg, uint8_t *buf, uint8_t len) {

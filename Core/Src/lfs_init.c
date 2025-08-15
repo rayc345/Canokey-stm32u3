@@ -87,6 +87,7 @@ static int program_space(uint32_t paddr, const void *buffer, lfs_size_t size)
 {
   int ret = 0;
   uint32_t typ;
+  __disable_irq();
   for (lfs_size_t i = 0; size;)
   {
     // DBG_MSG("%d\n", i);
@@ -113,7 +114,7 @@ static int program_space(uint32_t paddr, const void *buffer, lfs_size_t size)
       size -= 256;
     }
   }
-
+  __enable_irq();
   return ret;
 }
 
@@ -160,6 +161,7 @@ int block_erase(const struct lfs_config *c, lfs_block_t block)
     Error_Handler();
   }
 
+  __disable_irq();
   UNUSED(c);
   int ret = 0;
   uint32_t PageError;
@@ -189,6 +191,7 @@ int block_erase(const struct lfs_config *c, lfs_block_t block)
 
 erase_fail:
   HAL_FLASH_Lock();
+  __enable_irq();
   // DBG_MSG("done\n");
 
   /* Re-enable instruction cache */
@@ -206,7 +209,7 @@ int block_sync(const struct lfs_config *c)
   return 0;
 }
 
-void littlefs_init()
+void littlefs_init(void)
 {
   memset(&config, 0, sizeof(config));
   config.read = block_read;

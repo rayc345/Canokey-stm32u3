@@ -28,6 +28,7 @@
 #include <device.h>
 #include <nfc.h>
 #include <usb_device.h>
+#include "crypto-util.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -154,6 +155,7 @@ int main(void)
   MX_RNG_Init();
   MX_PKA_Init();
   /* USER CODE BEGIN 2 */
+  canokey_rng_init();
   uint8_t in_nfc_mode = check_is_nfc_en(); // boot in NFC mode by default
   nfc_init();
   set_nfc_state(in_nfc_mode);

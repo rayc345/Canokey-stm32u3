@@ -6,7 +6,6 @@
 #define USBD_VID 0x20A0
 #define USBD_PID 0x42D4
 
-#define USBD_LANGID_STRING 0x09, 0x04
 #define USBD_MANUFACTURER_STRING "canokeys.org"
 #ifndef USBD_PRODUCT_STRING
     #define USBD_PRODUCT_STRING "CanoKey"
@@ -27,17 +26,17 @@ enum {
   USBD_IDX_PRODUCT_STR      = 0x02,
   USBD_IDX_SERIAL_STR       = 0x03,
 
-  USBD_IDX_STD_STR_MAX,
+  // USBD_IDX_STD_STR_MAX,
 
-  // Custom strings
-  USBD_IDX_CUSTOM_STR_BASE  = 0x10,
+  // // Custom strings
+  // USBD_IDX_CUSTOM_STR_BASE  = 0x10,
 
-  USBD_IDX_CTAPHID_STR      = 0x10,
-  USBD_IDX_CCID_STR         = 0x11,
-  USBD_IDX_WEBUSB_STR       = 0x12,
-  USBD_IDX_KBDHID_STR       = 0x13,
+  USBD_IDX_CTAPHID_STR      = 0x04,
+  USBD_IDX_CCID_STR         = 0x05,
+  USBD_IDX_WEBUSB_STR       = 0x06,
+  USBD_IDX_KBDHID_STR       = 0x07,
 
-  USBD_IDX_CUSTOM_STR_MAX
+  // USBD_IDX_CUSTOM_STR_MAX
 };
 
 #define PLACEHOLDER_IFACE_NUM 0xFF

@@ -25,7 +25,7 @@ void usb_device_deinit(void) {
 //   USBD_DeInit(&usb_device);
 }
 
-void __attribute__((weak)) usb_resources_alloc() {}
+void __attribute__((weak)) usb_resources_alloc(void) {}
 
 //--------------------------------------------------------------------+
 // Device callbacks
