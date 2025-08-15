@@ -22,6 +22,7 @@
 #include "stm32u3xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "tusb.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -209,7 +210,7 @@ void SysTick_Handler(void)
 void USB_FS_IRQHandler(void)
 {
   /* USER CODE BEGIN USB_FS_IRQn 0 */
-
+  tud_int_handler(0);
   /* USER CODE END USB_FS_IRQn 0 */
   /* USER CODE BEGIN USB_FS_IRQn 1 */
 

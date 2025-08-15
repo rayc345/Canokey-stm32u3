@@ -27,6 +27,7 @@
 #include <ccid.h>
 #include <device.h>
 #include <nfc.h>
+#include <usb_device.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
